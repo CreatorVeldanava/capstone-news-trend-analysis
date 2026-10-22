@@ -24,3 +24,14 @@ Thumbs.db
 data/raw/
 data/processed/
 outputs/
+data/*.db
+data/*.sqlite
+
+# Local database files
+data/*.sqlite3
+
+# Local execution logs
+logs/
+
+# Generated topic models
+models/

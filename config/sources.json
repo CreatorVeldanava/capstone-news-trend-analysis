@@ -1,0 +1,25 @@
+
+{
+  "sources": [
+    {
+      "name": "ANTARA",
+      "url": "https://www.antaranews.com/rss/terkini.xml"
+    },
+    {
+      "name": "detikNews",
+      "url": "https://news.detik.com/berita/rss"
+    },
+    {
+      "name": "CNN Indonesia",
+      "url": "https://www.cnnindonesia.com/rss"
+    },
+    {
+      "name": "Tempo Nasional",
+      "url": "https://rss.tempo.co/nasional"
+    },
+    {
+      "name": "CNA Indonesia",
+      "url": "https://www.cna.id/api/v1/rss-outbound-feed?_format=xml"
+    }
+  ]
+}
