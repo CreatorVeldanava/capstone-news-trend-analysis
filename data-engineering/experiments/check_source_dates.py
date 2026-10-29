@@ -1,12 +1,11 @@
-
 import sqlite3
 from collections import Counter, defaultdict
 from datetime import timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent / "data" / "news.db"
-
+BASE_DIR = Path(__file__).resolve().parents[2]
+DB_PATH = BASE_DIR / "data" / "news.db"
 
 def to_local_date(value):
     if not value:

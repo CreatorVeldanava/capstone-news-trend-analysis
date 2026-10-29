@@ -1,4 +1,3 @@
-
 import json
 import re
 import html
@@ -9,7 +8,7 @@ from pathlib import Path
 import feedparser
 import requests
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parents[1]
 CONFIG_PATH = BASE_DIR / "config" / "sources.json"
 DB_PATH = BASE_DIR / "data" / "news.db"
 TIMEOUT = 45
