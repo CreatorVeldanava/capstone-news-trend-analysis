@@ -35,3 +35,12 @@ logs/
 
 # Generated topic models
 models/
+
+# Local backups and database files
+backups/
+*.db
+*.sqlite
+*.sqlite3
+
+# Local model artifacts
+*.safetensors

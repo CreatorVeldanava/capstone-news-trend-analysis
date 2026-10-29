@@ -6,7 +6,7 @@
 
 Proyek Capstone Teknik Informatika ini bertujuan membangun sistem untuk mendeteksi tren dan menganalisis evolusi topik berita berbahasa Indonesia menggunakan pendekatan Big Data dan Natural Language Processing (NLP).
 
-Sistem dirancang untuk mengumpulkan berita dari berbagai sumber, menyimpan riwayat artikel, mengelompokkan berita berdasarkan kesamaan topik, serta menganalisis perkembangan topik dari waktu ke waktu. Hasil analisis nantinya akan disajikan melalui dashboard web.
+Sistem dirancang untuk mengumpulkan berita dari berbagai sumber, menyimpan data artikel, mengelompokkan berita berdasarkan kesamaan topik, serta menganalisis perkembangan topik dari waktu ke waktu. Hasil analisis direncanakan disajikan melalui dashboard web.
 
 ## Tujuan
 
@@ -19,27 +19,24 @@ Sistem dirancang untuk mengumpulkan berita dari berbagai sumber, menyimpan riway
 
 ## Tim Pengembang
 
-| Nama | Rencana Peran |
+| Nama | Peran |
 |---|---|
 | Ilham Manziz | Data Engineering / Big Data |
 | M. Fatih Hadziq | NLP dan Trend Analysis |
 | Ariyandi Maulana Putra | Dashboard dan Integrasi |
-
-Pembagian peran merupakan rencana kerja awal dan dapat disesuaikan berdasarkan kesepakatan tim serta perkembangan implementasi.
 
 ## Teknologi
 
 | Teknologi | Penggunaan |
 |---|---|
 | Python | Bahasa pemrograman utama |
-| RSS dan Requests | Pengambilan berita dari sumber RSS |
-| Feedparser | Membaca dan memproses feed RSS |
+| RSS, Requests, dan Feedparser | Pengambilan dan pembacaan feed berita |
 | SQLite | Penyimpanan data berita secara lokal |
-| Sastrawi | Stemming dan preprocessing teks bahasa Indonesia |
+| Sastrawi | Preprocessing teks bahasa Indonesia |
 | Sentence Transformers | Menghasilkan representasi vektor teks |
-| BERTopic | Pemodelan dan pengelompokan topik berita |
-| Git dan GitHub | Pengelolaan versi kode dan kolaborasi |
-| Apache Spark | Kandidat teknologi pemrosesan data berskala besar pada tahap pengembangan berikutnya |
+| BERTopic | Pemodelan dan pengelompokan topik |
+| Git dan GitHub | Pengelolaan versi dan kolaborasi |
+| Apache Spark | Kandidat teknologi pemrosesan skala besar; belum diintegrasikan |
 
 ## Fitur dan Status Implementasi
 
@@ -49,29 +46,28 @@ Pembagian peran merupakan rencana kerja awal dan dapat disesuaikan berdasarkan k
 - Penyimpanan artikel ke database SQLite.
 - Pencegahan duplikasi artikel berdasarkan URL.
 - Pemeriksaan jumlah data, kelengkapan data, dan tanggal publikasi.
-- Preprocessing teks berita menggunakan Sastrawi.
+- Preprocessing teks menggunakan Sastrawi.
 - Pemodelan topik menggunakan BERTopic.
-- Analisis awal distribusi berita berdasarkan tanggal.
+- Agregasi awal distribusi berita berdasarkan tanggal dan topik.
 - Otomatisasi pengambilan berita harian melalui Windows Task Scheduler.
 
 ### Masih Dalam Pengembangan
 
-- Validasi dan peningkatan kualitas data berita historis.
+- Peningkatan kualitas dan cakupan data historis.
 - Topic Tracking untuk mengikuti perubahan topik antarperiode.
-- Event Tracking untuk mengidentifikasi perkembangan suatu peristiwa.
-- Trend Detection yang dievaluasi berdasarkan data temporal yang memadai.
-- Pengembangan dashboard web.
-- Integrasi seluruh komponen sistem.
-- Evaluasi performa dan kualitas hasil analisis.
-- Penggunaan Apache Spark jika diperlukan untuk pemrosesan berskala besar.
+- Event Tracking untuk mengidentifikasi perkembangan peristiwa.
+- Trend Detection berdasarkan data temporal yang memadai.
+- Dashboard web dan integrasi seluruh komponen.
+- Evaluasi kualitas topik serta hasil analisis.
+- Integrasi Apache Spark apabila dibutuhkan.
 
-## Sumber Data
+## Sumber Data dan Batasan
 
 Data dikumpulkan dari feed RSS beberapa portal berita. Daftar sumber dan alamat feed dikelola melalui `config/sources.json`.
 
-Feed RSS umumnya menyediakan judul, URL, tanggal publikasi, dan ringkasan. Ketersediaan serta kelengkapan isi artikel bergantung pada masing-masing sumber. Karena itu, sistem belum mengasumsikan bahwa seluruh teks artikel lengkap tersedia.
+Feed RSS umumnya menyediakan judul, URL, tanggal publikasi, dan ringkasan. Ketersediaan serta kelengkapan isi artikel bergantung pada masing-masing sumber. Oleh karena itu, teks yang diproses saat ini dapat berupa gabungan judul dan ringkasan, bukan selalu isi artikel lengkap.
 
-Data yang terkumpul disimpan secara bertahap di database lokal agar riwayat pemberitaan dapat bertambah seiring waktu. Kualitas tanggal publikasi dan kelengkapan data perlu divalidasi sebelum digunakan untuk menarik kesimpulan tren.
+Cakupan tanggal antarartikel belum merata. Analisis tren jangka panjang harus dilakukan setelah kualitas tanggal, kelengkapan teks, dan distribusi data divalidasi lebih lanjut.
 
 ## Struktur Proyek
 
@@ -79,27 +75,36 @@ Data yang terkumpul disimpan secara bertahap di database lokal agar riwayat pemb
 capstone-news-trend-analysis/
 ├── config/
 │   └── sources.json
+├── data-engineering/
+│   ├── database.py
+│   ├── fetch_news.py
+│   ├── preprocess_news.py
+│   └── experiments/
+│       ├── check_cleaned_text.py
+│       ├── check_database.py
+│       ├── check_dates.py
+│       ├── check_source_dates.py
+│       ├── evaluate_topics.py
+│       ├── experiment_topic_model.py
+│       ├── experiment_topic_model_cleaned.py
+│       └── inspect_topic_experiment.py
+├── dashboard-frontend/
 ├── docs/
 │   └── progress.md
-├── database.py
-├── fetch_news.py
-├── check_database.py
-├── check_dates.py
-├── check_source_dates.py
-├── preprocess_news.py
-├── topic_model.py
-├── trend_analysis.py
+├── nlp/
+│   ├── topic_model.py
+│   └── trend_analysis.py
 ├── run_daily_fetch.bat
 ├── requirements.txt
 ├── README.md
 └── .gitignore
 ```
 
-Database lokal, log, model hasil pelatihan, dan virtual environment tidak disertakan dalam repository.
+Folder `dashboard-frontend/` disiapkan untuk pengembangan dashboard. Implementasi dashboard masih dalam tahap pengembangan. Database lokal, backup, log, model hasil pelatihan, dan virtual environment tidak disertakan dalam repository.
 
 ## Persiapan Lingkungan
 
-Pastikan Python sudah terpasang di komputer. Langkah berikut menggunakan PowerShell pada Windows.
+Langkah berikut menggunakan PowerShell pada Windows.
 
 ### 1. Clone repository
 
@@ -108,15 +113,10 @@ git clone https://github.com/CreatorVeldanava/capstone-news-trend-analysis.git
 cd capstone-news-trend-analysis
 ```
 
-### 2. Buat virtual environment
+### 2. Buat dan aktifkan virtual environment
 
 ```powershell
 python -m venv .venv
-```
-
-Aktifkan lingkungan virtual:
-
-```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
@@ -129,60 +129,55 @@ python -m pip install -r requirements.txt
 ### 4. Inisialisasi database
 
 ```powershell
-python database.py
+python data-engineering/database.py
 ```
 
-### 5. Ambil berita
+### 5. Ambil berita dari RSS
 
 ```powershell
-python fetch_news.py
+python data-engineering/fetch_news.py
 ```
 
-### 6. Periksa data
+Perintah ini mengakses sumber RSS dan dapat menambahkan artikel baru ke database.
+
+### 6. Jalankan pemeriksaan data
 
 ```powershell
-python check_database.py
+python data-engineering/experiments/check_database.py
+python data-engineering/experiments/check_dates.py
+python data-engineering/experiments/check_source_dates.py
 ```
 
 ### 7. Jalankan preprocessing
 
 ```powershell
-python preprocess_news.py
+python data-engineering/preprocess_news.py
 ```
 
 ### 8. Jalankan pemodelan topik
 
 ```powershell
-python topic_model.py
+python nlp/topic_model.py
 ```
 
-### 9. Jalankan analisis tren harian
+Pemodelan BERTopic dapat memerlukan sumber daya komputasi dan waktu yang cukup besar.
+
+### 9. Jalankan analisis agregasi tren
 
 ```powershell
-python trend_analysis.py
+python nlp/trend_analysis.py
 ```
 
-Catatan: jalankan tahapan sesuai urutan kebutuhan data. Pemodelan topik memerlukan data yang sudah diproses, sedangkan analisis tren perlu divalidasi dengan rentang waktu dan kualitas tanggal yang memadai. Pemodelan BERTopic dapat memerlukan sumber daya komputasi dan waktu yang cukup besar.
+Skrip ini menghasilkan agregasi jumlah artikel berdasarkan tanggal dan topik. Hasilnya belum dapat dianggap sebagai sistem deteksi tren final atau pelacakan evolusi topik.
 
-## Menjalankan Pengumpulan Berita Harian
+## Otomatisasi Pengambilan Berita
 
-Proyek menyediakan `run_daily_fetch.bat` untuk menjalankan pengambilan berita menggunakan virtual environment proyek. Otomatisasi dijadwalkan melalui Windows Task Scheduler pada komputer pengembang.
+Skrip `run_daily_fetch.bat` menjalankan pengambilan berita dan menyimpan log ke `logs/fetch_news.log`. Penjadwalan dilakukan melalui Windows Task Scheduler pada komputer tempat sistem dikonfigurasi. Jadwal lokal tersebut tidak otomatis tersedia ketika repository di-clone pada komputer lain.
 
-Pengumpulan harian bergantung pada komputer yang menyala, koneksi internet, dan ketersediaan feed RSS. Dashboard web dan layanan server yang berjalan terus-menerus belum menjadi bagian dari implementasi saat ini.
+## Kolaborasi Git
 
-## Batasan Saat Ini
-
-- Data yang terkumpul masih dalam tahap pengembangan dan validasi.
-- Feed RSS tidak selalu menyediakan teks artikel lengkap.
-- Tanggal publikasi dari berbagai sumber perlu dinormalisasi dan diperiksa.
-- Analisis tren saat ini masih berupa analisis awal dan belum dapat dianggap sebagai hasil penelitian final.
-- Topic Tracking, Event Tracking, dan dashboard web belum selesai diimplementasikan.
-- Apache Spark masih menjadi rencana pengembangan, bukan komponen yang sudah terintegrasi.
+Pengembangan dilakukan melalui branch fitur. Perubahan diintegrasikan ke branch `main` melalui Pull Request sesuai aturan repository.
 
 ## Lisensi dan Penggunaan Data
 
-Proyek ini dikembangkan untuk keperluan akademik. Penggunaan data berita harus memperhatikan ketentuan masing-masing sumber, hak cipta, kebijakan akses, dan batasan penggunaan feed maupun isi artikel.
-
-## Status Pengembangan
-
-Proyek telah memiliki fondasi awal berupa pengumpulan berita RSS, penyimpanan SQLite, preprocessing teks, pemodelan topik dengan BERTopic, serta analisis awal berdasarkan tanggal. Pengembangan berikutnya difokuskan pada peningkatan kualitas data temporal, pelacakan evolusi topik, deteksi tren, dan pengembangan dashboard.
+Penggunaan data mengikuti ketentuan dan kebijakan masing-masing sumber berita. Repository ini berfokus pada pengembangan sistem analisis; ketersediaan data lokal tidak berarti seluruh isi artikel dapat didistribusikan ulang.
