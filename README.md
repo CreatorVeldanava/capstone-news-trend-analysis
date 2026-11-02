@@ -181,3 +181,11 @@ Pengembangan dilakukan melalui branch fitur. Perubahan diintegrasikan ke branch 
 ## Lisensi dan Penggunaan Data
 
 Penggunaan data mengikuti ketentuan dan kebijakan masing-masing sumber berita. Repository ini berfokus pada pengembangan sistem analisis; ketersediaan data lokal tidak berarti seluruh isi artikel dapat didistribusikan ulang.
+
+## Dokumentasi Progres
+
+Perkembangan implementasi, eksperimen, hasil evaluasi, dan rencana pengembangan proyek dapat dilihat pada dokumen berikut:
+
+- [Progres Pengembangan Proyek](docs/progress.md)
+
+Dokumen tersebut diperbarui mengikuti perkembangan pekerjaan tim. Hasil eksperimen yang masih bersifat sementara akan tetap ditandai sebagai hasil sementara sampai proses evaluasi dan validasi selesai.

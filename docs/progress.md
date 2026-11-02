@@ -1,79 +1,175 @@
+
 # Progres Pengembangan
 
-## Status Saat Ini
+Dokumen ini mencatat perkembangan implementasi, eksperimen, hasil pengujian, dan pekerjaan lanjutan pada proyek Capstone.
 
-Proyek berada pada tahap implementasi awal sistem analisis tren berita. Fondasi pengumpulan data RSS, penyimpanan SQLite, preprocessing teks, pemodelan topik menggunakan BERTopic, dan analisis distribusi berita berdasarkan tanggal telah dibuat dan diuji secara lokal.
+**Judul Penelitian:**
 
-## Progres yang Selesai
+Rancang Bangun Sistem Deteksi Tren dan Analisis Evolusi Topik Berita Berskala Besar Berbasis Big Data dan Natural Language Processing.
 
-### Persiapan dan Struktur Proyek
+**Status:** In Development — tahap pengembangan dan evaluasi model.
+
+## 1. Ringkasan Proyek
+
+Proyek ini bertujuan membangun sistem analisis berita berbahasa Indonesia untuk mengelompokkan artikel berdasarkan kesamaan topik, mengikuti evolusi topik, mengidentifikasi perkembangan peristiwa, dan mendeteksi tren berita berdasarkan data temporal.
+
+Pengembangan dilakukan melalui pengumpulan berita RSS, penyimpanan data, preprocessing, pemodelan topik, evaluasi, serta pengembangan komponen analisis lanjutan.
+
+## 2. Progres yang Telah Dilakukan
+
+### 2.1 Persiapan dan Struktur Proyek
 
 - Repository GitHub dan lingkungan pengembangan lokal telah disiapkan.
-- Struktur kode dipisahkan menjadi direktori `data-engineering/` dan `nlp/`.
+- Struktur kode dipisahkan menjadi direktori `data-engineering/`, `nlp/`, dan `dashboard-frontend/`.
 - Konfigurasi sumber berita disimpan di `config/sources.json`.
 - Dependensi Python dicatat dalam `requirements.txt`.
-- Aturan `.gitignore` diperbarui untuk mengecualikan database lokal, log, model hasil pelatihan, backup, dan berkas cache.
+- Aturan `.gitignore` digunakan untuk mengecualikan database lokal, model hasil pelatihan, backup, log, dan virtual environment.
 
-### Pengumpulan dan Penyimpanan Data
+### 2.2 Pengumpulan dan Penyimpanan Data
 
 - Pengumpulan berita RSS dikonfigurasi untuk lima sumber: ANTARA, detikNews, CNN Indonesia, Tempo Nasional, dan CNA Indonesia.
-- Data artikel disimpan dalam database SQLite pada `data/news.db`.
+- Data artikel disimpan menggunakan SQLite.
 - Duplikasi artikel dicegah berdasarkan URL.
-- Skrip pemeriksaan database, tanggal publikasi, dan distribusi tanggal per sumber telah dibuat.
-- Pengumpulan berita otomatis dijadwalkan melalui Windows Task Scheduler.
-- Pengujian lokal terakhir mencatat 774 artikel dari lima sumber berita.
+- Pemeriksaan kelengkapan data, tanggal publikasi, dan distribusi sumber telah dilakukan.
+- Pengambilan berita harian telah dikonfigurasi melalui Windows Task Scheduler.
+- Pemeriksaan dataset mencatat 1.044 artikel dalam database lokal pada pemeriksaan terakhir.
+- Sebanyak 774 artikel digunakan dalam eksperimen pemodelan awal.
+- Dataset mencakup tanggal 23 Agustus hingga 2 November 2026, dengan 25 tanggal publikasi berbeda.
 
-### Preprocessing dan Pemodelan Topik
+**Batasan data:** Data RSS yang dikumpulkan umumnya berisi judul dan ringkasan, bukan selalu isi artikel lengkap. Distribusi tanggal juga belum merata sehingga analisis tren jangka panjang masih membutuhkan validasi data lebih lanjut.
 
-- Preprocessing teks menggunakan Sastrawi telah dijalankan.
-- Kolom teks hasil preprocessing telah terisi untuk 774 artikel pada saat pemeriksaan.
-- Pemodelan topik menggunakan BERTopic telah berhasil dijalankan.
-- Pengujian model mencatat 31 topik reguler dan 186 artikel yang masuk kategori outlier.
-- Evaluasi koherensi topik menggunakan metrik C_v menghasilkan nilai awal 0,5349. Nilai ini masih bersifat eksploratif dan perlu dievaluasi lebih lanjut.
+### 2.3 Preprocessing Teks
 
-### Analisis Temporal
+- Preprocessing teks bahasa Indonesia menggunakan Sastrawi telah dibuat.
+- Pembersihan teks mencakup penghapusan elemen HTML, normalisasi, tokenisasi, stopword removal, dan stemming.
+- Eksperimen Protected Terms dilakukan untuk mempertahankan kata penting yang dapat berubah makna akibat stemming.
+- Kata yang dilindungi dalam eksperimen meliputi `pemerintah`, `asian`, `tersangka`, dan `pelaku`.
+- Hasil pemeriksaan menunjukkan kata-kata tersebut berhasil dipertahankan dalam teks hasil preprocessing.
 
-- Skrip `nlp/trend_analysis.py` telah dibuat untuk menghitung distribusi artikel berdasarkan tanggal dan topik.
-- Hasil agregasi disimpan dalam `outputs/trend_daily.csv` dan `outputs/trend_topic_summary.csv`.
-- Pemeriksaan terakhir mencatat 774 tanggal publikasi valid dengan 22 tanggal berbeda, dalam rentang 23 Agustus hingga 29 Oktober 2026.
-- Distribusi tanggal belum merata sehingga hasil agregasi belum cukup untuk menyimpulkan tren berita yang valid.
+Eksperimen Protected Terms masih menjadi kandidat preprocessing yang perlu dievaluasi lebih lanjut melalui stabilitas dan kualitas pengelompokan topik.
 
-### Dokumentasi dan Pengujian Kode
+### 2.4 Pemodelan Topik BERTopic
 
-- README telah diperbarui untuk menjelaskan struktur direktori, teknologi, cara menjalankan program, dan batasan implementasi.
-- Path pada skrip telah disesuaikan dengan struktur direktori baru.
-- Pemeriksaan sintaks Python dan `git diff --check` telah berhasil dilakukan.
-- Database, model hasil pelatihan, backup, dan cache lokal telah dipastikan tidak ikut muncul sebagai berkas yang akan dilacak Git berdasarkan aturan `.gitignore`.
+Model menggunakan embedding `paraphrase-multilingual-MiniLM-L12-v2` dan BERTopic dengan `min_topic_size=5`.
 
-## Pekerjaan Berikutnya
+Hasil eksperimen utama pada 774 artikel:
 
-### Kualitas Data
+| Pengujian | Topik | Outlier | C_v |
+|---|---:|---:|---:|
+| Model utama | 31 | 186 | 0,5309 |
+| Protected Terms | 34 | 216 | 0,5511 |
 
-- Mengumpulkan data secara berkelanjutan agar riwayat berita lebih memadai.
-- Memvalidasi tanggal publikasi, kelengkapan data, dan distribusi artikel dari setiap sumber.
-- Meninjau kualitas preprocessing dan hasil pengelompokan topik.
-- Memeriksa ketentuan akses dan penggunaan data dari sumber berita.
+Nilai C_v merupakan hasil evaluasi eksploratif dan belum menjadi bukti tunggal bahwa suatu model lebih baik. Perbandingan lanjutan juga telah dilakukan menggunakan evaluasi silang pada dua versi preprocessing.
 
-### Analisis Topik dan Tren
+Hasil evaluasi silang:
+
+- Model utama pada teks standar: 0,5352.
+- Protected Terms pada teks standar: 0,5504.
+- Model utama pada teks Protected Terms: 0,5267.
+- Protected Terms pada teks Protected Terms: 0,5555.
+
+Protected Terms memperoleh nilai koherensi lebih tinggi dalam pengujian tersebut. Namun, hasilnya masih perlu diperiksa melalui evaluasi kualitas kelompok topik dan pengujian stabilitas model.
+
+### 2.5 Pengujian Artikel Baru
+
+Sebanyak 270 artikel baru telah diproses menggunakan preprocessing Protected Terms dan diuji menggunakan model yang telah dilatih sebelumnya melalui `transform()`.
+
+Hasil pengujian:
+
+| Keterangan | Jumlah |
+|---|---:|
+| Artikel diuji | 270 |
+| Mendapat penempatan topik | 244 |
+| Outlier | 26 |
+| Assignment coverage | 90,37% |
+
+Artikel baru berhasil ditempatkan pada 33 topik yang telah tersedia dalam model.
+
+Assignment coverage menunjukkan cakupan penempatan artikel, bukan akurasi atau ketepatan klasifikasi topik. Oleh karena itu, pemeriksaan manual terhadap kelompok artikel tetap diperlukan.
+
+### 2.6 Audit Kualitas Topik
+
+Pemeriksaan manual terhadap hasil pengelompokan menemukan beberapa kelompok yang masih bercampur, sementara kelompok lainnya menunjukkan kesamaan tema atau peristiwa yang cukup jelas.
+
+Beberapa temuan:
+
+- Topic 0 dan Topic 1 masih menunjukkan pencampuran tema.
+- Topic 5 cenderung mengelompokkan berbagai jenis berita olahraga.
+- Topic 9 memiliki kelompok berita kecelakaan dan kriminal dengan beberapa peristiwa berbeda.
+- Topic 15 menunjukkan indikasi pengelompokan berdasarkan format berita karena sebagian besar judul diawali `VIDEO`.
+- Topic 17 relatif konsisten pada tema bencana dan cuaca.
+- Topic 22 relatif konsisten pada tema ekonomi.
+
+Audit ini menjadi dasar perbaikan dan evaluasi model berikutnya. Pengelompokan berdasarkan tema luas tidak selalu berarti seluruh artikel membahas peristiwa yang sama.
+
+### 2.7 Eksperimen Prefix Judul
+
+Pemeriksaan prefix pada hasil prediksi 244 artikel menemukan:
+
+- 15 judul dengan prefix `VIDEO`.
+- 4 judul dengan prefix `FOTO`.
+
+Eksperimen BERTopic Protected Terms tanpa prefix kemudian dijalankan pada 774 artikel dengan konfigurasi yang sama.
+
+Hasil eksperimen:
+
+| Keterangan | Hasil |
+|---|---:|
+| Dokumen | 774 |
+| Prefix dihapus | 0 |
+| Topik | 29 |
+| Outlier | 174 |
+| Persentase outlier | 22,48% |
+
+Tidak ditemukan prefix yang dapat dihapus pada `processed_text`. Dengan demikian, eksperimen ini belum dapat digunakan untuk menyimpulkan bahwa penghapusan prefix meningkatkan kualitas topik.
+
+Pemeriksaan lanjutan diperlukan untuk mengetahui apakah prefix hanya terdapat pada judul dan apakah judul ikut diproses dalam teks yang digunakan model.
+
+## 3. Pekerjaan yang Sedang Berlangsung
+
+- Menuntaskan evaluasi kualitas dan pencampuran kelompok topik.
+- Memeriksa perbedaan teks judul, ringkasan, dan `processed_text`.
+- Menentukan pendekatan preprocessing yang paling sesuai.
+- Mengevaluasi konsistensi dan stabilitas hasil BERTopic.
+- Menyiapkan dasar pengembangan Topic Tracking.
+
+## 4. Rencana Pengembangan Berikutnya
+
+### Kualitas Data dan Preprocessing
+
+- Memperbaiki kualitas dan pemerataan data historis.
+- Memvalidasi tanggal publikasi dan kelengkapan teks.
+- Meninjau penggunaan judul dan ringkasan dalam preprocessing.
+- Menentukan perlakuan terhadap prefix dan format berita.
+
+### Analisis Topik dan Peristiwa
 
 - Mengembangkan Topic Tracking untuk mengikuti perubahan topik antarperiode.
-- Mengembangkan Event Tracking untuk mengidentifikasi perkembangan suatu peristiwa.
-- Mengembangkan Trend Detection menggunakan periode, metrik, dan kriteria yang terdefinisi.
-- Mengevaluasi hasil analisis menggunakan data temporal yang telah divalidasi.
+- Mengembangkan Event Tracking untuk membedakan peristiwa tertentu dalam kelompok topik yang lebih luas.
+- Mengembangkan Trend Detection berdasarkan indikator temporal yang terdefinisi.
+- Melakukan evaluasi hasil analisis menggunakan data yang telah divalidasi.
 
-### Sistem dan Evaluasi
+### Integrasi Sistem
 
 - Mengembangkan dashboard web.
-- Mengintegrasikan pengumpulan data, pemrosesan NLP, dan analisis tren.
+- Mengintegrasikan pengumpulan data, preprocessing, pemodelan topik, dan analisis tren.
 - Mengevaluasi kebutuhan Apache Spark untuk pemrosesan data berskala besar.
-- Melakukan pengujian sistem dan mendokumentasikan hasil evaluasi.
+- Mempertimbangkan AI Summary/RAG sebagai komponen pendukung setelah fondasi analisis selesai.
 
-## Batasan Implementasi Saat Ini
+## 5. Batasan dan Catatan Evaluasi
 
-Data yang diperoleh dari RSS umumnya berupa judul dan ringkasan berita, bukan teks lengkap artikel. Cakupan tanggal historis juga berbeda antar-sumber.
+- Dataset saat ini terutama memanfaatkan judul dan ringkasan RSS, bukan selalu isi artikel lengkap.
+- Distribusi tanggal publikasi belum merata.
+- Nilai coherence tidak secara langsung menunjukkan akurasi pengelompokan.
+- Assignment coverage bukan ukuran ketepatan prediksi.
+- Beberapa kelompok topik masih memerlukan perbaikan.
+- Topic Tracking, Event Tracking, dan Trend Detection belum selesai diimplementasikan.
+- Dashboard web dan integrasi Apache Spark masih dalam tahap pengembangan atau evaluasi kebutuhan.
 
-BERTopic telah dijalankan, tetapi hasil pemodelan masih perlu dievaluasi. Analisis temporal yang tersedia saat ini berupa agregasi jumlah artikel berdasarkan tanggal dan topik, bukan sistem deteksi tren yang telah tervalidasi.
+## 6. Status Keseluruhan
 
-Topic Tracking, Event Tracking, Trend Detection lanjutan, dashboard web, dan integrasi Apache Spark belum selesai diimplementasikan.
+Proyek telah memiliki fondasi pengumpulan data, penyimpanan, preprocessing, pemodelan BERTopic, serta eksperimen dan evaluasi awal.
 
-Dokumen ini mencatat progres pengembangan dan pengujian lokal. Status commit dan push terbaru akan diperiksa secara terpisah melalui Git.
+Hasil yang diperoleh saat ini bersifat sementara dan belum dinyatakan sebagai hasil final penelitian. Setiap permasalahan kualitas data, preprocessing, pemodelan, dan integrasi akan ditinjau serta diselesaikan sebelum sistem dinyatakan selesai.
+
+Dokumen ini akan diperbarui mengikuti perkembangan implementasi dan hasil pengujian berikutnya.
