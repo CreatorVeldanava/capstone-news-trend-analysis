@@ -6,12 +6,12 @@
 
 Proyek Capstone Teknik Informatika ini bertujuan membangun sistem untuk mendeteksi tren dan menganalisis evolusi topik berita berbahasa Indonesia menggunakan pendekatan Big Data dan Natural Language Processing (NLP).
 
-Sistem dirancang untuk mengumpulkan berita dari berbagai sumber, menyimpan data artikel, mengelompokkan berita berdasarkan kesamaan topik, serta menganalisis perkembangan topik dari waktu ke waktu. Hasil analisis direncanakan disajikan melalui dashboard web.
+Sistem dirancang untuk mengumpulkan berita dari berbagai sumber, menyimpan data artikel, melakukan preprocessing teks, mengelompokkan berita berdasarkan kesamaan topik, serta menganalisis perkembangan topik dari waktu ke waktu. Hasil analisis direncanakan disajikan melalui dashboard web.
 
 ## Tujuan
 
 - Mengumpulkan berita berbahasa Indonesia dari berbagai sumber.
-- Menyimpan data berita beserta sumber, URL, tanggal publikasi, dan ringkasan.
+- Menyimpan data berita beserta sumber, URL, tanggal publikasi, dan teks artikel yang tersedia.
 - Melakukan preprocessing teks untuk mendukung analisis NLP.
 - Mengelompokkan artikel berdasarkan kesamaan topik.
 - Menganalisis perkembangan topik dan mendeteksi tren pemberitaan.
@@ -45,11 +45,31 @@ Sistem dirancang untuk mengumpulkan berita dari berbagai sumber, menyimpan data 
 - Pengambilan berita dari lima sumber RSS: ANTARA, detikNews, CNN Indonesia, Tempo Nasional, dan CNA Indonesia.
 - Penyimpanan artikel ke database SQLite.
 - Pencegahan duplikasi artikel berdasarkan URL.
-- Pemeriksaan jumlah data, kelengkapan data, dan tanggal publikasi.
+- Validasi sumber berita, data artikel, dan tanggal publikasi.
+- Penanganan kesalahan pengambilan RSS dan pencatatan hasil setiap sumber.
 - Preprocessing teks menggunakan Sastrawi.
+- Validasi kelengkapan kolom teks hasil preprocessing.
 - Pemodelan topik menggunakan BERTopic.
+- Eksperimen dan evaluasi kualitas topik.
 - Agregasi awal distribusi berita berdasarkan tanggal dan topik.
 - Otomatisasi pengambilan berita harian melalui Windows Task Scheduler.
+
+### Status Dataset Terakhir
+
+Berdasarkan audit database lokal pada 25 November 2026:
+
+| Keterangan | Hasil |
+|---|---:|
+| Total artikel | 2.935 |
+| Integritas SQLite | OK |
+| Judul kosong | 0 |
+| URL kosong | 0 |
+| Tanggal publikasi kosong | 0 |
+| `cleaned_text` kosong | 0 |
+| `processed_text` kosong | 0 |
+| URL duplikat | 0 |
+
+Jumlah artikel tersebut merupakan kondisi database lokal pada waktu pemeriksaan dan dapat berubah setelah pengambilan berita berikutnya.
 
 ### Masih Dalam Pengembangan
 
@@ -58,16 +78,18 @@ Sistem dirancang untuk mengumpulkan berita dari berbagai sumber, menyimpan data 
 - Event Tracking untuk mengidentifikasi perkembangan peristiwa.
 - Trend Detection berdasarkan data temporal yang memadai.
 - Dashboard web dan integrasi seluruh komponen.
-- Evaluasi kualitas topik serta hasil analisis.
-- Integrasi Apache Spark apabila dibutuhkan.
+- Evaluasi kualitas dan stabilitas hasil pemodelan topik.
+- Evaluasi kebutuhan integrasi Apache Spark.
 
 ## Sumber Data dan Batasan
 
 Data dikumpulkan dari feed RSS beberapa portal berita. Daftar sumber dan alamat feed dikelola melalui `config/sources.json`.
 
-Feed RSS umumnya menyediakan judul, URL, tanggal publikasi, dan ringkasan. Ketersediaan serta kelengkapan isi artikel bergantung pada masing-masing sumber. Oleh karena itu, teks yang diproses saat ini dapat berupa gabungan judul dan ringkasan, bukan selalu isi artikel lengkap.
+Feed RSS umumnya menyediakan judul, URL, tanggal publikasi, dan ringkasan. Ketersediaan serta kelengkapan isi artikel bergantung pada masing-masing sumber. Oleh karena itu, teks yang diproses dapat berupa gabungan judul dan ringkasan, bukan selalu isi artikel lengkap.
 
-Cakupan tanggal antarartikel belum merata. Analisis tren jangka panjang harus dilakukan setelah kualitas tanggal, kelengkapan teks, dan distribusi data divalidasi lebih lanjut.
+Ketersediaan feed juga bergantung pada koneksi jaringan dan layanan masing-masing portal berita. Kegagalan koneksi pada satu sumber tidak selalu menghentikan pemrosesan sumber lainnya, tetapi dapat menyebabkan hasil pengambilan berita berstatus parsial.
+
+Cakupan tanggal antarartikel belum merata. Analisis tren jangka panjang perlu mempertimbangkan kualitas tanggal, kelengkapan teks, dan distribusi data.
 
 ## Struktur Proyek
 
@@ -80,14 +102,6 @@ capstone-news-trend-analysis/
 │   ├── fetch_news.py
 │   ├── preprocess_news.py
 │   └── experiments/
-│       ├── check_cleaned_text.py
-│       ├── check_database.py
-│       ├── check_dates.py
-│       ├── check_source_dates.py
-│       ├── evaluate_topics.py
-│       ├── experiment_topic_model.py
-│       ├── experiment_topic_model_cleaned.py
-│       └── inspect_topic_experiment.py
 ├── dashboard-frontend/
 ├── docs/
 │   └── progress.md
@@ -138,7 +152,7 @@ python data-engineering/database.py
 python data-engineering/fetch_news.py
 ```
 
-Perintah ini mengakses sumber RSS dan dapat menambahkan artikel baru ke database.
+Perintah ini mengakses sumber RSS dan dapat menambahkan artikel baru ke database. Hasil pengambilan bergantung pada ketersediaan jaringan dan layanan RSS. Periksa ringkasan proses untuk mengetahui sumber yang berhasil maupun gagal.
 
 ### 6. Jalankan pemeriksaan data
 
@@ -153,6 +167,8 @@ python data-engineering/experiments/check_source_dates.py
 ```powershell
 python data-engineering/preprocess_news.py
 ```
+
+Skrip ini melakukan pembersihan dan preprocessing teks artikel yang tersimpan dalam database.
 
 ### 8. Jalankan pemodelan topik
 
@@ -172,7 +188,13 @@ Skrip ini menghasilkan agregasi jumlah artikel berdasarkan tanggal dan topik. Ha
 
 ## Otomatisasi Pengambilan Berita
 
-Skrip `run_daily_fetch.bat` menjalankan pengambilan berita dan menyimpan log ke `logs/fetch_news.log`. Penjadwalan dilakukan melalui Windows Task Scheduler pada komputer tempat sistem dikonfigurasi. Jadwal lokal tersebut tidak otomatis tersedia ketika repository di-clone pada komputer lain.
+Skrip `run_daily_fetch.bat` menjalankan pengambilan berita dan preprocessing secara berurutan serta menyimpan log ke `logs/fetch_news.log`.
+
+Penjadwalan dilakukan melalui Windows Task Scheduler pada komputer tempat sistem dikonfigurasi. Jadwal lokal tersebut tidak otomatis tersedia ketika repository di-clone pada komputer lain.
+
+Task Scheduler hanya dapat menjalankan tugas ketika komputer tersedia. Jika komputer mati pada waktu jadwal, eksekusi dapat dicoba setelah komputer kembali aktif apabila opsi `StartWhenAvailable` diaktifkan.
+
+Hasil setiap eksekusi perlu diperiksa melalui log. Jika salah satu sumber RSS gagal, proses dapat tetap melanjutkan sumber lain dan preprocessing, tetapi status akhir pipeline dapat menunjukkan kegagalan parsial.
 
 ## Kolaborasi Git
 
@@ -188,4 +210,4 @@ Perkembangan implementasi, eksperimen, hasil evaluasi, dan rencana pengembangan 
 
 - [Progres Pengembangan Proyek](docs/progress.md)
 
-Dokumen tersebut diperbarui mengikuti perkembangan pekerjaan tim. Hasil eksperimen yang masih bersifat sementara akan tetap ditandai sebagai hasil sementara sampai proses evaluasi dan validasi selesai.
+Dokumen tersebut diperbarui mengikuti perkembangan pekerjaan tim. Hasil eksperimen yang masih bersifat sementara tetap ditandai sebagai hasil sementara sampai proses evaluasi dan validasi selesai.

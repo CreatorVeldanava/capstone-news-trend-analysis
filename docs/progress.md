@@ -1,13 +1,12 @@
-
 # Progres Pengembangan
 
 Dokumen ini mencatat perkembangan implementasi, eksperimen, hasil pengujian, dan pekerjaan lanjutan pada proyek Capstone.
 
 **Judul Penelitian:**
 
-Rancang Bangun Sistem Deteksi Tren dan Analisis Evolusi Topik Berita Berskala Besar Berbasis Big Data dan Natural Language Processing.
+Rancang Bangun Sistem Deteksi Tren dan Analisis Evolusi Topik Berita Berskala Besar Berbasis Big Data dan Natural Language Processing
 
-**Status:** In Development — tahap pengembangan dan evaluasi model.
+**Status:** In Development — tahap implementasi, evaluasi, dan integrasi sistem.
 
 ## 1. Ringkasan Proyek
 
@@ -24,17 +23,57 @@ Pengembangan dilakukan melalui pengumpulan berita RSS, penyimpanan data, preproc
 - Konfigurasi sumber berita disimpan di `config/sources.json`.
 - Dependensi Python dicatat dalam `requirements.txt`.
 - Aturan `.gitignore` digunakan untuk mengecualikan database lokal, model hasil pelatihan, backup, log, dan virtual environment.
+- Pengembangan Data Engineering dilakukan pada branch `feature/ilham-data-engineering`.
 
 ### 2.2 Pengumpulan dan Penyimpanan Data
 
 - Pengumpulan berita RSS dikonfigurasi untuk lima sumber: ANTARA, detikNews, CNN Indonesia, Tempo Nasional, dan CNA Indonesia.
 - Data artikel disimpan menggunakan SQLite.
 - Duplikasi artikel dicegah berdasarkan URL.
-- Pemeriksaan kelengkapan data, tanggal publikasi, dan distribusi sumber telah dilakukan.
+- Validasi dilakukan terhadap konfigurasi sumber, judul, URL, dan tanggal publikasi.
+- Penanganan kesalahan koneksi dan kegagalan sumber diterapkan agar proses dapat mencatat sumber bermasalah dan melanjutkan pemrosesan sumber lainnya.
 - Pengambilan berita harian telah dikonfigurasi melalui Windows Task Scheduler.
-- Pemeriksaan dataset mencatat 1.044 artikel dalam database lokal pada pemeriksaan terakhir.
-- Sebanyak 774 artikel digunakan dalam eksperimen pemodelan awal.
-- Dataset mencakup tanggal 23 Agustus hingga 2 November 2026, dengan 25 tanggal publikasi berbeda.
+- Pengujian terisolasi terhadap pipeline telah berhasil dijalankan melalui Task Scheduler setelah pengguna logout dari Windows.
+- Pengujian tersebut menunjukkan pengambilan berita dan preprocessing pada database pengujian dapat selesai dengan exit code 0.
+
+**Audit database produksi pada 25 November 2026:**
+
+| Keterangan | Jumlah |
+|---|---:|
+| Total artikel | 2.935 |
+| ANTARA | 562 |
+| CNA Indonesia | 136 |
+| CNN Indonesia | 1.079 |
+| Tempo Nasional | 70 |
+| detikNews | 1.088 |
+
+Hasil pemeriksaan kualitas database:
+
+| Pemeriksaan | Hasil |
+|---|---:|
+| Integritas SQLite | OK |
+| Judul kosong | 0 |
+| URL kosong | 0 |
+| Tanggal kosong | 0 |
+| `cleaned_text` kosong | 0 |
+| `processed_text` kosong | 0 |
+| URL duplikat | 0 |
+
+Seluruh pemeriksaan tersebut dilakukan secara read-only sehingga tidak mengubah database.
+
+**Hasil eksekusi otomatisasi produksi pada 25 November 2026:**
+
+- Task Scheduler menjalankan tugas yang terlewat setelah komputer kembali aktif dengan `StartWhenAvailable=True`.
+- Empat sumber RSS berhasil diproses.
+- ANTARA mengalami `ConnectTimeout` ketika mencoba menghubungi server RSS.
+- Sebanyak 216 artikel baru berhasil ditambahkan dari sumber yang berhasil diproses.
+- Sebanyak 54 artikel dikenali sebagai duplikat.
+- Preprocessing berhasil memeriksa 2.935 artikel.
+- Sebanyak 478 artikel diperbarui pada tahap preprocessing.
+- Tidak ditemukan teks kosong setelah preprocessing.
+- Exit code akhir pipeline adalah 1 karena terdapat satu sumber RSS yang gagal.
+
+Dengan demikian, eksekusi produksi tersebut dikategorikan sebagai keberhasilan parsial. Pengambilan berita dari empat sumber dan preprocessing berhasil, tetapi pengambilan dari ANTARA masih memerlukan penanganan koneksi lebih lanjut.
 
 **Batasan data:** Data RSS yang dikumpulkan umumnya berisi judul dan ringkasan, bukan selalu isi artikel lengkap. Distribusi tanggal juga belum merata sehingga analisis tren jangka panjang masih membutuhkan validasi data lebih lanjut.
 
@@ -42,9 +81,12 @@ Pengembangan dilakukan melalui pengumpulan berita RSS, penyimpanan data, preproc
 
 - Preprocessing teks bahasa Indonesia menggunakan Sastrawi telah dibuat.
 - Pembersihan teks mencakup penghapusan elemen HTML, normalisasi, tokenisasi, stopword removal, dan stemming.
+- Penambahan stopword dilakukan untuk mengurangi kata umum yang kurang memberikan informasi.
 - Eksperimen Protected Terms dilakukan untuk mempertahankan kata penting yang dapat berubah makna akibat stemming.
 - Kata yang dilindungi dalam eksperimen meliputi `pemerintah`, `asian`, `tersangka`, dan `pelaku`.
 - Hasil pemeriksaan menunjukkan kata-kata tersebut berhasil dipertahankan dalam teks hasil preprocessing.
+- Pengujian preprocessing pada salinan database menunjukkan hasil yang konsisten dan idempotent.
+- Audit produksi terakhir menunjukkan seluruh 2.935 artikel memiliki `cleaned_text` dan `processed_text` yang terisi.
 
 Eksperimen Protected Terms masih menjadi kandidat preprocessing yang perlu dievaluasi lebih lanjut melalui stabilitas dan kualitas pengelompokan topik.
 
@@ -129,8 +171,10 @@ Pemeriksaan lanjutan diperlukan untuk mengetahui apakah prefix hanya terdapat pa
 
 - Menuntaskan evaluasi kualitas dan pencampuran kelompok topik.
 - Memeriksa perbedaan teks judul, ringkasan, dan `processed_text`.
-- Menentukan pendekatan preprocessing yang paling sesuai.
+- Menentukan pendekatan preprocessing yang paling sesuai berdasarkan hasil evaluasi.
 - Mengevaluasi konsistensi dan stabilitas hasil BERTopic.
+- Menangani dan mengevaluasi kegagalan koneksi sementara pada sumber RSS.
+- Merapikan dokumentasi implementasi dan hasil pengujian Data Engineering.
 - Menyiapkan dasar pengembangan Topic Tracking.
 
 ## 4. Rencana Pengembangan Berikutnya
@@ -141,6 +185,7 @@ Pemeriksaan lanjutan diperlukan untuk mengetahui apakah prefix hanya terdapat pa
 - Memvalidasi tanggal publikasi dan kelengkapan teks.
 - Meninjau penggunaan judul dan ringkasan dalam preprocessing.
 - Menentukan perlakuan terhadap prefix dan format berita.
+- Memastikan proses pengambilan berita dan preprocessing berjalan konsisten.
 
 ### Analisis Topik dan Peristiwa
 
@@ -160,16 +205,22 @@ Pemeriksaan lanjutan diperlukan untuk mengetahui apakah prefix hanya terdapat pa
 
 - Dataset saat ini terutama memanfaatkan judul dan ringkasan RSS, bukan selalu isi artikel lengkap.
 - Distribusi tanggal publikasi belum merata.
+- Ketersediaan sumber RSS bergantung pada jaringan dan layanan masing-masing portal berita.
 - Nilai coherence tidak secara langsung menunjukkan akurasi pengelompokan.
 - Assignment coverage bukan ukuran ketepatan prediksi.
 - Beberapa kelompok topik masih memerlukan perbaikan.
 - Topic Tracking, Event Tracking, dan Trend Detection belum selesai diimplementasikan.
 - Dashboard web dan integrasi Apache Spark masih dalam tahap pengembangan atau evaluasi kebutuhan.
+- Pengujian otomatisasi pada database pengujian berhasil, sedangkan eksekusi produksi terakhir masih mengalami kegagalan koneksi pada satu sumber RSS.
 
 ## 6. Status Keseluruhan
 
 Proyek telah memiliki fondasi pengumpulan data, penyimpanan, preprocessing, pemodelan BERTopic, serta eksperimen dan evaluasi awal.
 
-Hasil yang diperoleh saat ini bersifat sementara dan belum dinyatakan sebagai hasil final penelitian. Setiap permasalahan kualitas data, preprocessing, pemodelan, dan integrasi akan ditinjau serta diselesaikan sebelum sistem dinyatakan selesai.
+Pada sisi Data Engineering, pengambilan berita dari lima sumber RSS, penyimpanan SQLite, preprocessing, validasi data, dan penjadwalan otomatis telah diimplementasikan. Audit terakhir menunjukkan database produksi memiliki 2.935 artikel dengan integritas SQLite baik, tanpa data teks kosong dan tanpa URL duplikat.
 
-Dokumen ini akan diperbarui mengikuti perkembangan implementasi dan hasil pengujian berikutnya.
+Walaupun fondasi tersebut telah berjalan, penanganan kegagalan koneksi sumber RSS, evaluasi model, Topic Tracking, Event Tracking, Trend Detection, dan integrasi dashboard masih memerlukan penyelesaian.
+
+Hasil yang diperoleh saat ini belum dinyatakan sebagai hasil final penelitian. Setiap permasalahan kualitas data, preprocessing, pemodelan, dan integrasi akan ditinjau serta diselesaikan sebelum sistem dinyatakan selesai.
+
+Dokumen ini diperbarui mengikuti perkembangan implementasi dan hasil pengujian berikutnya.
